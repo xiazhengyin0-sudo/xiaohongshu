@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小红书自动化运营系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: linear-gradient(180deg, #ff2442 0%, #d91a37 100%);
+            color: white;
+            z-index: 50;
+        }
+        
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
+            background: #f8f9fa;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            color: rgba(255,255,255,0.8);
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        
+        .nav-item:hover, .nav-item.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-left-color: white;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            padding: 24px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #ff2442 0%, #ff6b81 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255,36,66,0.4);
+        }
+        
+        .btn-secondary {
+            background: #f1f3f5;
+            color: #495057;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-secondary:hover { background: #e9ecef; }
+        
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .tag-red { background: #ffeef0; color: #ff2442; }
+        .tag-green { background: #e6fcf5; color: #0ca678; }
+        .tag-blue { background: #e7f5ff; color: #1c7ed6; }
+        .tag-yellow { background: #fff9db; color: #f08c00; }
+        .tag-purple { background: #f3f0ff; color: #7950f2; }
+        .tag-orange { background: #fff4e6; color: #f76707; }
+        
+        .input-field {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: #ff2442;
+        }
+        
+        textarea.input-field { resize: vertical; min-height: 120px; }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ff2442 0%, #ff6b81 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .provider-card {
+            padding: 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .provider-card:hover { border-color: #ff2442; }
+        .provider-card.active { border-color: #ff2442; background: #fff5f6; }
+        
+        .tab-item {
+            padding: 12px 24px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+            color: #666;
+        }
+        
+        .tab-item:hover { color: #ff2442; }
+        .tab-item.active { 
+            color: #ff2442; 
+            border-bottom-color: #ff2442;
+            font-weight: 500;
+        }
+        
+        .login-qrcode {
+
+        .download-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 100;
+            background: linear-gradient(135deg, #ff2442 0%, #ff6b81 100%);
+            color: white;
+            padding: 14px 24px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            box-shadow: 0 4px 20px rgba(255,36,66,0.4);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(255,36,66,0.5);
+        }
+            width: 200px;
+            height: 200px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .historical-post {
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .historical-post:hover { background: #fff5f6; }
+        .historical-post.selected { background: #fff5f6; border-left: 3px solid #ff2442; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <div class="p-6 border-b border-white/20">
+                <h1 class="text-xl font-bold flex items-center gap-2">
+                    <i class="ri-book-2-fill"></i>
+                    小红书自动运营
+                </h1>
+                <p class="text-white/70 text-sm mt-1">AI驱动的智能运营系统</p>
+            </div>
+            
+            <nav class="py-4">
+                <div v-for="item in navItems" :key="item.key"
+                     class="nav-item" :class="{ active: currentPage === item.key }"
+                     @click="currentPage = item.key">
+                    <i :class="item.icon" class="mr-3 text-lg"></i>
+                    <span>{{ item.name }}</span>
+                </div>
+            </nav>
+            
+            <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-white/20">
+                <div class="text-xs text-white/70 mb-2">当前模型</div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="tag tag-orange text-xs">文字</span>
+                    <span class="text-sm">{{ textProvider.name }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="tag tag-purple text-xs">图片</span>
+                    <span class="text-sm">{{ imageProvider.name }}</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 主内容 -->
+        <main class="main-content">
+            <!-- 顶部栏 -->
+            <header class="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between sticky top-0 z-40">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-800">{{ currentPageTitle }}</h2>
+                    <p class="text-gray-500 text-sm">{{ currentPageSubtitle }}</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2 px-4 py-2 rounded-lg" 
+                         :class="xhsLoggedIn ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'">
+                        <i :class="xhsLoggedIn ? 'ri-checkbox-circle-fill' : 'ri-error-warning-fill'"></i>
+                        <span class="text-sm font-medium">{{ xhsLoggedIn ? '已登录' : '未登录' }}</span>
+                    </div>
+                    <button class="btn-primary" @click="showQuickAction = true">
+                        <i class="ri-add-line mr-1"></i>
+                        快速操作
+                    </button>
+                </div>
+            </header>
+
+            <div class="p-6">
+                <!-- 登录页面 -->
+                <div v-if="currentPage === 'login'" class="max-w-lg mx-auto">
+                    <div class="card text-center">
+                        <h3 class="text-2xl font-bold mb-2">登录小红书</h3>
+                        <p class="text-gray-500 mb-6">扫码登录后即可开始自动化运营</p>
+                        
+                        <div v-if="!xhsLoggedIn" class="space-y-4">
+                            <div class="login-qrcode mx-auto" v-if="qrcode">
+                                <img :src="'data:image/png;base64,' + qrcode" alt="登录二维码" class="w-full h-full rounded-lg">
+                            </div>
+                            <div v-else class="login-qrcode mx-auto">
+                                <div class="text-gray-400">
+                                    <i class="ri-qr-code-line text-4xl"></i>
+                                    <p class="mt-2 text-sm">点击获取二维码</p>
+                                </div>
+                            </div>
+                            
+                            <button class="btn-primary w-full" @click="getLoginQRCode">
+                                <i class="ri-qr-scan-2-line mr-2"></i>
+                                获取登录二维码
+                            </button>
+                        </div>
+                        
+                        <div v-else class="py-8">
+                            <div class="w-20 h-20 rounded-full bg-green-100 mx-auto flex items-center justify-center mb-4">
+                                <i class="ri-checkbox-circle-fill text-4xl text-green-500"></i>
+                            </div>
+                            <h4 class="text-xl font-semibold text-green-600">登录成功！</h4>
+                            <p class="text-gray-500 mt-2">现在可以开始使用自动化功能了</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI配置页面 - 分离文字和图片模型 -->
+                <div v-else-if="currentPage === 'ai-config'" class="max-w-5xl mx-auto">
+                    <div class="card">
+                        <h3 class="text-xl font-bold mb-6">AI 模型配置</h3>
+                        <p class="text-gray-500 mb-6">文字模型用于内容生成，图片模型用于封面配图</p>
+                        
+                        <!-- Tab 切换 -->
+                        <div class="flex border-b mb-6">
+                            <div class="tab-item" :class="{ active: configTab === 'text' }" @click="configTab = 'text'">
+                                <i class="ri-text mr-2"></i>文字模型
+                            </div>
+                            <div class="tab-item" :class="{ active: configTab === 'image' }" @click="configTab = 'image'">
+                                <i class="ri-image-line mr-2"></i>图片模型
+                            </div>
+                        </div>
+                        
+                        <!-- 文字模型选择 -->
+                        <div v-show="configTab === 'text'">
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                                <div v-for="(config, key) in textProviders" :key="key"
+                                     class="provider-card" :class="{ active: selectedTextProvider === key }"
+                                     @click="selectedTextProvider = key">
+                                    <div class="flex items-center gap-3 mb-2">
+                                        <div class="w-10 h-10 rounded-lg flex items-center justify-center text-white"
+                                             :style="{ background: config.color }">
+                                            <i :class="config.icon"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-semibold">{{ config.name }}</p>
+                                            <p class="text-xs text-gray-500">{{ config.model }}</p>
+                                        </div>
+                                    </div>
+                                    <p class="text-sm text-gray-500">{{ config.desc }}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">API Key</label>
+                                    <input type="password" class="input-field" 
+                                           v-model="textApiKey" 
+                                           :placeholder="'请输入' + textProviders[selectedTextProvider].name + '的API Key'">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">模型选择</label>
+                                    <select class="input-field" v-model="selectedTextModel">
+                                        <option v-for="model in textProviders[selectedTextProvider].models" :key="model" :value="model">
+                                            {{ model }}
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 图片模型选择 -->
+                        <div v-show="configTab === 'image'">
+                            <div class="grid grid-cols-2 gap-4 mb-6">
+                                <div v-for="(config, key) in imageProviders" :key="key"
+                                     class="provider-card" :class="{ active: selectedImageProvider === key }"
+                                     @click="selectedImageProvider = key">
+                                    <div class="flex items-center gap-3 mb-2">
+                                        <div class="w-10 h-10 rounded-lg flex items-center justify-center text-white"
+                                             :style="{ background: config.color }">
+                                            <i :class="config.icon"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-semibold">{{ config.name }}</p>
+                                            <p class="text-xs text-gray-500">{{ config.model }}</p>
+                                        </div>
+                                    </div>
+                                    <p class="text-sm text-gray-500">{{ config.desc }}</p>
+                                    <span class="tag mt-2" :class="config.type === 'local' ? 'tag-green' : 'tag-blue'">
+                                        {{ config.type === 'local' ? '本地部署' : '云端API' }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <div v-if="imageProviders[selectedImageProvider].type === 'api'">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">API Key</label>
+                                    <input type="password" class="input-field" 
+                                           v-model="imageApiKey" 
+                                           :placeholder="'请输入' + imageProviders[selectedImageProvider].name + '的API Key'">
+                                </div>
+                                
+                                <div v-else>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">本地服务地址</label>
+                                    <input type="text" class="input-field" 
+                                           v-model="sdApiUrl" 
+                                           placeholder="例如: http://localhost:7860">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button class="btn-primary mt-6" @click="saveAIConfig">
+                            <i class="ri-save-line mr-2"></i>
+                            保存配置
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 内容续写页面 -->
+                <div v-else-if="currentPage === 'continue'" class="space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- 左侧：历史内容选择 -->
+                        <div class="card">
+                            <h3 class="font-bold text-lg mb-4">
+                                <i class="ri-history-line text-blue-500 mr-2"></i>
+                                选择历史内容
+                            </h3>
+                            <p class="text-gray-500 text-sm mb-4">选择要参考的历史文章，AI将分析其风格并续写</p>
+                            
+                            <div class="max-h-96 overflow-y-auto">
+                                <div v-for="(post, idx) in historicalPosts" :key="idx" 
+                                     class="historical-post" :class="{ selected: selectedHistoricalPosts.includes(idx) }"
+                                     @click="toggleHistoricalPost(idx)">
+                                    <div class="flex items-start gap-3">
+                                        <input type="checkbox" :checked="selectedHistoricalPosts.includes(idx)" 
+                                               class="mt-1" @click.stop>
+                                        <div class="flex-1">
+                                            <h4 class="font-medium text-sm">{{ post.title }}</h4>
+                                            <p class="text-xs text-gray-500 mt-1 line-clamp-2">{{ post.content }}</p>
+                                            <div class="flex gap-2 mt-2">
+                                                <span v-for="tag in post.tags?.slice(0,2)" :key="tag" class="tag tag-red text-xs">
+                                                    #{{ tag }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 p-3 bg-blue-50 rounded-lg">
+                                <p class="text-sm text-blue-600">
+                                    <i class="ri-information-line mr-1"></i>
+                                    已选择 {{ selectedHistoricalPosts.length }} 篇历史内容
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <!-- 右侧：续写配置 -->
+                        <div class="card">
+                            <h3 class="font-bold text-lg mb-4">
+                                <i class="ri-quill-pen-line text-purple-500 mr-2"></i>
+                                续写配置
+                            </h3>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">续写主题</label>
+                                    <input type="text" class="input-field" v-model="continueTopic" 
+                                           placeholder="例如：职场成长进阶篇">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">续写数量</label>
+                                    <select class="input-field" v-model="continueCount">
+                                        <option :value="1">1篇</option>
+                                        <option :value="3">3篇</option>
+                                        <option :value="5">5篇</option>
+                                        <option :value="7">7篇</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">续写方向</label>
+                                    <select class="input-field" v-model="continueDirection">
+                                        <option value="extend">延续原主题深入</option>
+                                        <option value="related">相关话题延伸</option>
+                                        <option value="series">组成系列内容</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="p-3 bg-gray-50 rounded-lg">
+                                    <h4 class="font-medium text-sm mb-2">AI将自动：</h4>
+                                    <ul class="text-sm text-gray-600 space-y-1">
+                                        <li><i class="ri-check-line text-green-500 mr-1"></i>分析历史内容风格</li>
+                                        <li><i class="ri-check-line text-green-500 mr-1"></i>提取语言特征和表达习惯</li>
+                                        <li><i class="ri-check-line text-green-500 mr-1"></i>延续相同的内容结构</li>
+                                        <li><i class="ri-check-line text-green-500 mr-1"></i>保持相似的emoji和排版</li>
+                                    </ul>
+                                </div>
+                                
+                                <button class="btn-primary w-full" @click="startContinue" :disabled="isContinuing || selectedHistoricalPosts.length === 0">
+                                    <i class="ri-magic-line mr-2"></i>
+                                    {{ isContinuing ? '续写中...' : '开始续写' }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 续写结果 -->
+                    <div v-if="continuedContent" class="card">
+                        <h3 class="font-bold text-lg mb-4">
+                            <i class="ri-file-list-3-line text-green-500 mr-2"></i>
+                            续写结果
+                        </h3>
+                        
+                        <div v-if="continuedContent.series_title" class="mb-4 p-3 bg-purple-50 rounded-lg">
+                            <h4 class="font-semibold">{{ continuedContent.series_title }}</h4>
+                            <p class="text-sm text-gray-500 mt-1">{{ continuedContent.continuity_analysis }}</p>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div v-for="(post, idx) in continuedContent.posts" :key="idx" 
+                                 class="p-4 border rounded-xl">
+                                <div class="flex items-start justify-between mb-2">
+                                    <h5 class="font-semibold">{{ post.title }}</h5>
+                                    <span class="tag tag-blue text-xs">第{{ post.order }}篇</span>
+                                </div>
+                                <p class="text-gray-600 text-sm whitespace-pre-line mb-3">{{ post.content }}</p>
+                                <div class="flex flex-wrap gap-2 mb-3">
+                                    <span v-for="tag in post.tags" :key="tag" class="tag tag-red">#{{ tag }}</span>
+                                </div>
+                                <p class="text-xs text-gray-400 mb-3">
+                                    <i class="ri-link-line mr-1"></i>{{ post.connection_to_history }}
+                                </p>
+                                <div class="flex gap-2">
+                                    <button class="btn-primary text-sm py-1 px-3" @click="publishPost(post)">
+                                        <i class="ri-send-plane-line mr-1"></i>发布
+                                    </button>
+                                    <button class="btn-secondary text-sm py-1 px-3" @click="editPost(post)">
+                                        <i class="ri-edit-line mr-1"></i>编辑
+                                    </button>
+                                    <button class="btn-secondary text-sm py-1 px-3" @click="generateImageForPost(post)">
+                                        <i class="ri-image-line mr-1"></i>生成配图
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI生成页面 -->
+                <div v-else-if="currentPage === 'generate'" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="card">
+                        <h3 class="font-bold text-lg mb-4"><i class="ri-magic-line text-purple-500 mr-2"></i>AI 内容生成</h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">内容主题</label>
+                                <input type="text" class="input-field" v-model="generateTopic" placeholder="例如：职场成长技巧">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">生成类型</label>
+                                <div class="flex gap-4">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="radio" v-model="generateType" value="single" class="w-4 h-4">
+                                        <span>单篇内容</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="radio" v-model="generateType" value="series" class="w-4 h-4">
+                                        <span>系列内容</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div v-if="generateType === 'series'">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">系列数量</label>
+                                <input type="number" class="input-field" v-model="seriesCount" min="2" max="10">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">融合热点关键词（可选）</label>
+                                <input type="text" class="input-field" v-model="hotKeywords" placeholder="用逗号分隔多个关键词">
+                            </div>
+                            
+                            <button class="btn-primary w-full" @click="generateContent" :disabled="isGenerating">
+                                <i class="ri-sparkling-line mr-2"></i>
+                                {{ isGenerating ? '生成中...' : '开始生成' }}
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h3 class="font-bold text-lg mb-4"><i class="ri-file-text-line text-blue-500 mr-2"></i>生成结果</h3>
+                        
+                        <div v-if="generatedContent" class="space-y-4">
+                            <div v-for="(post, idx) in (generatedContent.posts || [generatedContent])" :key="idx" 
+                                 class="p-4 bg-gray-50 rounded-xl">
+                                <h5 class="font-semibold mb-2">{{ post.title }}</h5>
+                                <p class="text-gray-600 text-sm whitespace-pre-line mb-3">{{ post.content }}</p>
+                                <div class="flex flex-wrap gap-2 mb-3">
+                                    <span v-for="tag in post.tags" :key="tag" class="tag tag-red">#{{ tag }}</span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button class="btn-secondary text-sm" @click="publishPost(post)">
+                                        <i class="ri-send-plane-line mr-1"></i>发布
+                                    </button>
+                                    <button class="btn-secondary text-sm" @click="schedulePost(post)">
+                                        <i class="ri-calendar-line mr-1"></i>定时发布
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div v-else class="text-center py-12 text-gray-400">
+                            <i class="ri-file-text-line text-4xl mb-2"></i>
+                            <p>输入主题后点击生成</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 仪表盘（默认） -->
+                <div v-else class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="card">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-gray-500">今日发布</span>
+                                <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
+                                    <i class="ri-send-plane-fill text-red-500"></i>
+                                </div>
+                            </div>
+                            <p class="stat-value">{{ stats.todayPosts }}</p>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-gray-500">总互动</span>
+                                <div class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
+                                    <i class="ri-heart-fill text-purple-500"></i>
+                                </div>
+                            </div>
+                            <p class="stat-value">{{ stats.totalEngagement }}</p>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-gray-500">待回复</span>
+                                <div class="w-10 h-10 rounded-lg bg-yellow-100 flex items-center justify-center">
+                                    <i class="ri-chat-3-fill text-yellow-600"></i>
+                                </div>
+                            </div>
+                            <p class="stat-value">{{ stats.pendingComments }}</p>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-gray-500">AI生成</span>
+                                <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                                    <i class="ri-magic-fill text-blue-500"></i>
+                                </div>
+                            </div>
+                            <p class="stat-value">{{ stats.aiGenerated }}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- 快捷入口 -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="card cursor-pointer hover:shadow-lg transition-shadow" @click="currentPage = 'continue'">
+                            <div class="flex items-center gap-4">
+                                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
+                                    <i class="ri-quill-pen-line text-2xl text-white"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold">智能续写</h4>
+                                    <p class="text-sm text-gray-500">分析历史内容，智能续写</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card cursor-pointer hover:shadow-lg transition-shadow" @click="currentPage = 'generate'">
+                            <div class="flex items-center gap-4">
+                                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center">
+                                    <i class="ri-magic-line text-2xl text-white"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold">AI生成</h4>
+                                    <p class="text-sm text-gray-500">输入主题，一键生成内容</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card cursor-pointer hover:shadow-lg transition-shadow" @click="currentPage = 'ai-config'">
+                            <div class="flex items-center gap-4">
+                                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center">
+                                    <i class="ri-settings-4-line text-2xl text-white"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold">模型配置</h4>
+                                    <p class="text-sm text-gray-500">选择文字/图片模型</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h3 class="font-bold text-lg mb-4">系统状态</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-500">小红书登录</span>
+                                <span class="tag" :class="xhsLoggedIn ? 'tag-green' : 'tag-red'">
+                                    {{ xhsLoggedIn ? '正常' : '未登录' }}
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-500">文字模型</span>
+                                <span class="tag tag-orange">{{ textProvider.name }}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-500">图片模型</span>
+                                <span class="tag tag-purple">{{ imageProvider.name }}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-500">定时任务</span>
+                                <span class="tag" :class="scheduledRunning ? 'tag-green' : 'tag-yellow'">
+                                    {{ scheduledRunning ? '运行中' : '已停止' }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 快速操作弹窗 -->
+        <div v-if="showQuickAction" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click.self="showQuickAction = false">
+            <div class="bg-white rounded-2xl p-6 w-full max-w-md">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-lg">快速操作</h3>
+                    <button @click="showQuickAction = false" class="text-gray-400 hover:text-gray-600">
+                        <i class="ri-close-line text-xl"></i>
+                    </button>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <button class="p-4 border rounded-xl hover:bg-red-50 text-left" @click="currentPage = 'continue'; showQuickAction = false">
+                        <i class="ri-quill-pen-line text-2xl text-blue-500 mb-2"></i>
+                        <p class="font-medium">智能续写</p>
+                        <p class="text-xs text-gray-500">基于历史续写</p>
+                    </button>
+                    <button class="p-4 border rounded-xl hover:bg-red-50 text-left" @click="currentPage = 'generate'; showQuickAction = false">
+                        <i class="ri-magic-line text-2xl text-purple-500 mb-2"></i>
+                        <p class="font-medium">AI生成</p>
+                        <p class="text-xs text-gray-500">主题生成内容</p>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 悬浮下载按钮 -->
+        <a href="/xhs-auto-agent.tar.gz" download="xhs-auto-agent.tar.gz" class="download-btn">
+            <i class="ri-download-2-line text-lg"></i>
+            下载项目代码
+        </a>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, watch } = Vue;
+        
+        createApp({
+            setup() {
+                // 导航
+                const navItems = [
+                    { key: 'dashboard', name: '仪表盘', icon: 'ri-dashboard-3-line' },
+                    { key: 'login', name: '账号登录', icon: 'ri-login-box-line' },
+                    { key: 'ai-config', name: 'AI配置', icon: 'ri-settings-4-line' },
+                    { key: 'continue', name: '智能续写', icon: 'ri-quill-pen-line' },
+                    { key: 'generate', name: 'AI生成', icon: 'ri-magic-line' }
+                ];
+                
+                const currentPage = ref('dashboard');
+                const xhsLoggedIn = ref(false);
+                const showQuickAction = ref(false);
+                const scheduledRunning = ref(false);
+                const configTab = ref('text');
+                
+                // 文字模型配置
+                const textProviders = {
+                    zhipu: {
+                        name: '智谱AI',
+                        model: 'glm-4',
+                        models: ['glm-4', 'glm-4-plus', 'glm-4-flash'],
+                        icon: 'ri-brain-line',
+                        color: '#3b82f6',
+                        desc: '国产领先大模型'
+                    },
+                    qwen: {
+                        name: '通义千问',
+                        model: 'qwen-max',
+                        models: ['qwen-max', 'qwen-plus', 'qwen-turbo'],
+                        icon: 'ri-cloud-line',
+                        color: '#ff6b00',
+                        desc: '阿里云大模型'
+                    },
+                    deepseek: {
+                        name: 'DeepSeek',
+                        model: 'deepseek-chat',
+                        models: ['deepseek-chat', 'deepseek-coder'],
+                        icon: 'ri-code-line',
+                        color: '#10b981',
+                        desc: '深度求索AI'
+                    },
+                    moonshot: {
+                        name: 'Moonshot',
+                        model: 'moonshot-v1-8k',
+                        models: ['moonshot-v1-8k', 'moonshot-v1-32k', 'moonshot-v1-128k'],
+                        icon: 'ri-moon-line',
+                        color: '#8b5cf6',
+                        desc: 'Kimi大模型'
+                    }
+                };
+                
+                // 图片模型配置
+                const imageProviders = {
+                    zhipu: {
+                        name: '智谱AI (CogView)',
+                        model: 'cogview-3',
+                        icon: 'ri-palette-line',
+                        color: '#3b82f6',
+                        desc: '智谱AI图像生成',
+                        type: 'api'
+                    },
+                    qwen: {
+                        name: '通义万相',
+                        model: 'wanx-v1',
+                        icon: 'ri-image-add-line',
+                        color: '#ff6b00',
+                        desc: '阿里云图像生成',
+                        type: 'api'
+                    },
+                    stable_diffusion: {
+                        name: 'Stable Diffusion',
+                        model: 'sd-3',
+                        icon: 'ri-robot-line',
+                        color: '#10b981',
+                        desc: '本地部署图像生成',
+                        type: 'local'
+                    }
+                };
+                
+                const selectedTextProvider = ref('zhipu');
+                const selectedTextModel = ref('glm-4');
+                const textApiKey = ref('');
+                
+                const selectedImageProvider = ref('zhipu');
+                const imageApiKey = ref('');
+                const sdApiUrl = ref('http://localhost:7860');
+                
+                // 监听文字模型切换
+                watch(selectedTextProvider, (newProvider) => {
+                    selectedTextModel.value = textProviders[newProvider].model;
+                });
+                
+                // 历史内容（模拟数据）
+                const historicalPosts = ref([
+                    { title: '职场新人必看！5个成长法则', content: '入职新公司，如何在短时间内脱颖而出...', tags: ['职场干货', '新人必看'] },
+                    { title: '高效时间管理！打工人的一天', content: '每天都在忙，却感觉没做什么？...', tags: ['时间管理', '效率提升'] },
+                    { title: '汇报工作这样做，领导刮目相看', content: '你还在这样汇报工作吗？...', tags: ['职场技巧', '工作汇报'] }
+                ]);
+                
+                const selectedHistoricalPosts = ref([]);
+                const continueTopic = ref('');
+                const continueCount = ref(3);
+                const continueDirection = ref('extend');
+                const isContinuing = ref(false);
+                const continuedContent = ref(null);
+                
+                // 统计数据
+                const stats = ref({
+                    todayPosts: 3,
+                    totalEngagement: '2.5K',
+                    pendingComments: 12,
+                    aiGenerated: 28
+                });
+                
+                // 生成相关
+                const generateTopic = ref('');
+                const generateType = ref('single');
+                const seriesCount = ref(5);
+                const hotKeywords = ref('');
+                const isGenerating = ref(false);
+                const generatedContent = ref(null);
+                
+                const qrcode = ref(null);
+                
+                // 计算属性
+                const currentPageTitle = computed(() => {
+                    const item = navItems.find(n => n.key === currentPage.value);
+                    return item?.name || '仪表盘';
+                });
+                
+                const currentPageSubtitle = computed(() => {
+                    const subtitles = {
+                        dashboard: '系统概览与数据统计',
+                        login: '小红书账号登录',
+                        'ai-config': '配置文字和图片AI模型',
+                        continue: '基于历史内容智能续写',
+                        generate: '输入主题AI生成内容'
+                    };
+                    return subtitles[currentPage.value] || '';
+                });
+                
+                const textProvider = computed(() => textProviders[selectedTextProvider.value]);
+                const imageProvider = computed(() => imageProviders[selectedImageProvider.value]);
+                
+                // 方法
+                const toggleHistoricalPost = (idx) => {
+                    const index = selectedHistoricalPosts.value.indexOf(idx);
+                    if (index > -1) {
+                        selectedHistoricalPosts.value.splice(index, 1);
+                    } else {
+                        selectedHistoricalPosts.value.push(idx);
+                    }
+                };
+                
+                const startContinue = async () => {
+                    if (selectedHistoricalPosts.value.length === 0) {
+                        alert('请选择要参考的历史内容');
+                        return;
+                    }
+                    if (!continueTopic.value) {
+                        alert('请输入续写主题');
+                        return;
+                    }
+                    
+                    isContinuing.value = true;
+                    
+                    // 模拟API调用
+                    setTimeout(() => {
+                        const posts = selectedHistoricalPosts.value.map((idx, i) => ({
+                            order: i + 1,
+                            title: `💡 ${continueTopic.value}进阶技巧第${i+1}弹`,
+                            content: `基于历史内容的延续...\n\n📌 要点一：...\n📌 要点二：...\n\n希望有帮助！`,
+                            tags: [continueTopic.value, '干货分享'],
+                            connection_to_history: '延续了历史内容的实用风格'
+                        }));
+                        
+                        continuedContent.value = {
+                            series_title: `${continueTopic.value}系列`,
+                            continuity_analysis: '分析历史内容风格，延续了实用的内容结构和活泼的语言风格',
+                            posts
+                        };
+                        
+                        isContinuing.value = false;
+                    }, 2000);
+                };
+                
+                const generateContent = () => {
+                    if (!generateTopic.value) {
+                        alert('请输入内容主题');
+                        return;
+                    }
+                    isGenerating.value = true;
+                    
+                    setTimeout(() => {
+                        generatedContent.value = {
+                            title: '💡 ' + generateTopic.value + '实用技巧分享',
+                            content: '关于' + generateTopic.value + '，总结了几个超实用的方法...\n\n📌 要点一：...\n📌 要点二：...\n\n希望对大家有帮助！',
+                            tags: [generateTopic.value, '干货分享', '实用技巧']
+                        };
+                        isGenerating.value = false;
+                    }, 2000);
+                };
+                
+                const saveAIConfig = () => {
+                    alert(`配置已保存！\n文字模型: ${textProvider.value.name}\n图片模型: ${imageProvider.value.name}`);
+                };
+                
+                const getLoginQRCode = () => {
+                    qrcode.value = 'mock_base64';
+                    xhsLoggedIn.value = true;
+                };
+                
+                const publishPost = (post) => alert('发布: ' + post.title);
+                const editPost = (post) => alert('编辑: ' + post.title);
+                const schedulePost = (post) => alert('定时发布: ' + post.title);
+                const generateImageForPost = (post) => alert('生成配图: ' + post.title);
+                
+                return {
+                    navItems,
+                    currentPage,
+                    currentPageTitle,
+                    currentPageSubtitle,
+                    xhsLoggedIn,
+                    showQuickAction,
+                    scheduledRunning,
+                    configTab,
+                    textProviders,
+                    imageProviders,
+                    selectedTextProvider,
+                    selectedTextModel,
+                    textApiKey,
+                    selectedImageProvider,
+                    imageApiKey,
+                    sdApiUrl,
+                    textProvider,
+                    imageProvider,
+                    historicalPosts,
+                    selectedHistoricalPosts,
+                    continueTopic,
+                    continueCount,
+                    continueDirection,
+                    isContinuing,
+                    continuedContent,
+                    stats,
+                    generateTopic,
+                    generateType,
+                    seriesCount,
+                    hotKeywords,
+                    isGenerating,
+                    generatedContent,
+                    qrcode,
+                    toggleHistoricalPost,
+                    startContinue,
+                    generateContent,
+                    saveAIConfig,
+                    getLoginQRCode,
+                    publishPost,
+                    editPost,
+                    schedulePost,
+                    generateImageForPost
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
