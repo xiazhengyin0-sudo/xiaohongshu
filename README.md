@@ -11,7 +11,6 @@
 | **通义千问** | Qwen-Max | 阿里云大模型，稳定可靠 |
 | **DeepSeek** | DeepSeek-Chat | 性价比高，代码能力强 |
 | **Moonshot** | Kimi | 长文本处理优秀 |
-| **文心一言** | ERNIE-Bot-4 | 百度大模型，中文理解好 |
 
 ### 🔧 核心功能
 1. **数据采集** - 通过 xiaohongshu-mcp 采集账号数据、热点话题
@@ -172,7 +171,6 @@ POST /collect/start-scheduled
 | 通义千问 | https://dashscope.console.aliyun.com |
 | DeepSeek | https://platform.deepseek.com |
 | Moonshot | https://platform.moonshot.cn |
-| 文心一言 | https://console.bce.baidu.com |
 
 ## ⚠️ 注意事项
 
@@ -180,6 +178,38 @@ POST /collect/start-scheduled
 2. **发布频率**: 每日建议不超过 50 篇
 3. **内容审核**: AI 生成内容请审核后再发布
 4. **Cookie 过期**: 长时间不登录需重新扫码
+
+## ✅ 可行性评估与优化建议
+
+当前项目可以作为“小红书内容运营工作台”的本地原型运行，但生产落地依赖以下外部条件：
+
+- **小红书自动化能力**依赖 `xiaohongshu-mcp` 镜像实际支持的工具名、登录态和发布接口；不同版本 MCP 返回字段可能不同，建议先在 `/docs` 中逐个联调。
+- **AI 内容生成**依赖至少一个文字模型 API Key。未配置 Key 时，AI 服务会返回本地兜底结果，便于验证前端流程，但不代表真实模型效果。
+- **自动发布有平台风控风险**，建议保留人工审核、限频、素材版权检查和失败重试日志，不建议无审核高频发布。
+- **前端配置页不应保存真实 Key 到浏览器**。Key 应写入 `config/.env` 并重启服务，避免泄露。
+
+本次优化重点：
+
+1. 前端从模拟数据改为调用后端 `/generate/content`、`/generate/continue`、`/login/qrcode`、`/publish/content`。
+2. AI 服务补齐 `/analyze/content` 缺失实现，并增强 JSON 解析、参数校验、CORS 和无 API Key 兜底能力。
+3. 数据采集服务增加登录状态、二维码、发布代理接口，并避免重复启动定时任务。
+4. Docker Compose 暴露数据采集服务 `8002`，统一读取 `config/.env`。
+5. 启停脚本改为自动定位仓库根目录，避免硬编码旧路径。
+
+### 推荐启动方式
+
+```bash
+cp config/.env.example config/.env
+# 编辑 config/.env，至少填一个 TEXT_MODEL_PROVIDER 对应的 API Key
+./scripts/start.sh
+```
+
+访问：
+
+- Web 管理界面：http://localhost:3000
+- AI 分析引擎文档：http://localhost:8001/docs
+- 数据采集服务文档：http://localhost:8002/docs
+- 小红书 MCP：http://localhost:18060
 
 ## 📄 许可证
 

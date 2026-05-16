@@ -31,18 +31,11 @@ services:
     volumes:
       - ./services/ai-engine:/app
       - ./data/cache:/app/cache
+    env_file:
+      - ./config/.env
     environment:
       - TZ=Asia/Shanghai
-      # AI 模型配置 - 支持多种国内模型
-      - AI_PROVIDER=${AI_PROVIDER:-zhipu}  # zhipu, qwen, baidu, deepseek, moonshot
-      - ZHIPU_API_KEY=${ZHIPU_API_KEY:-}
-      - ZHIPU_MODEL=${ZHIPU_MODEL:-glm-4}
-      - QWEN_API_KEY=${QWEN_API_KEY:-}
-      - QWEN_MODEL=${QWEN_MODEL:-qwen-max}
-      - BAIDU_API_KEY=${BAIDU_API_KEY:-}
-      - BAIDU_SECRET_KEY=${BAIDU_SECRET_KEY:-}
-      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
-      - MOONSHOT_API_KEY=${MOONSHOT_API_KEY:-}
+      - CORS_ORIGINS=${CORS_ORIGINS:-*}
     depends_on:
       - xiaohongshu-mcp
 
@@ -53,13 +46,18 @@ services:
       dockerfile: Dockerfile
     container_name: xhs-data-collector
     restart: unless-stopped
+    ports:
+      - "8002:8002"
     volumes:
       - ./services/data-collector:/app
       - ./data/cache:/app/data
+    env_file:
+      - ./config/.env
     environment:
       - TZ=Asia/Shanghai
       - XHS_MCP_URL=http://xiaohongshu-mcp:18060/mcp
       - COLLECT_INTERVAL=${COLLECT_INTERVAL:-3600}
+      - CORS_ORIGINS=${CORS_ORIGINS:-*}
     depends_on:
       - xiaohongshu-mcp
 
@@ -76,7 +74,8 @@ services:
       - ./web-ui:/app
     environment:
       - TZ=Asia/Shanghai
-      - VITE_API_URL=http://localhost:8001
+      - AI_API_URL=http://localhost:8001
+      - DATA_API_URL=http://localhost:8002
     depends_on:
       - ai-engine
 
