@@ -145,6 +145,14 @@
         }
         
         .login-qrcode {
+            width: 200px;
+            height: 200px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
         .download-btn {
             position: fixed;
@@ -167,14 +175,6 @@
         .download-btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 8px 30px rgba(255,36,66,0.5);
-        }
-            width: 200px;
-            height: 200px;
-            background: #f8f9fa;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
         
         .historical-post {
@@ -732,6 +732,20 @@
         
         createApp({
             setup() {
+                const AI_API_URL = window.localStorage.getItem('AI_API_URL') || 'http://localhost:8001';
+                const DATA_API_URL = window.localStorage.getItem('DATA_API_URL') || 'http://localhost:8002';
+
+                const requestJson = async (url, options = {}) => {
+                    const response = await fetch(url, {
+                        headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+                        ...options
+                    });
+                    if (!response.ok) {
+                        throw new Error(`请求失败 ${response.status}: ${await response.text()}`);
+                    }
+                    return response.json();
+                };
+
                 // 导航
                 const navItems = [
                     { key: 'dashboard', name: '仪表盘', icon: 'ri-dashboard-3-line' },
@@ -895,56 +909,95 @@
                         alert('请输入续写主题');
                         return;
                     }
-                    
+
                     isContinuing.value = true;
-                    
-                    // 模拟API调用
-                    setTimeout(() => {
-                        const posts = selectedHistoricalPosts.value.map((idx, i) => ({
-                            order: i + 1,
-                            title: `💡 ${continueTopic.value}进阶技巧第${i+1}弹`,
-                            content: `基于历史内容的延续...\n\n📌 要点一：...\n📌 要点二：...\n\n希望有帮助！`,
-                            tags: [continueTopic.value, '干货分享'],
-                            connection_to_history: '延续了历史内容的实用风格'
-                        }));
-                        
-                        continuedContent.value = {
-                            series_title: `${continueTopic.value}系列`,
-                            continuity_analysis: '分析历史内容风格，延续了实用的内容结构和活泼的语言风格',
-                            posts
-                        };
-                        
+                    try {
+                        const selectedPosts = selectedHistoricalPosts.value.map(idx => historicalPosts.value[idx]);
+                        const result = await requestJson(`${AI_API_URL}/generate/continue`, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                historical_posts: selectedPosts,
+                                continue_topic: continueTopic.value,
+                                continue_count: Number(continueCount.value)
+                            })
+                        });
+                        continuedContent.value = result.data;
+                    } catch (error) {
+                        alert(`续写失败：${error.message}`);
+                    } finally {
                         isContinuing.value = false;
-                    }, 2000);
+                    }
                 };
                 
-                const generateContent = () => {
+                const generateContent = async () => {
                     if (!generateTopic.value) {
                         alert('请输入内容主题');
                         return;
                     }
                     isGenerating.value = true;
-                    
-                    setTimeout(() => {
-                        generatedContent.value = {
-                            title: '💡 ' + generateTopic.value + '实用技巧分享',
-                            content: '关于' + generateTopic.value + '，总结了几个超实用的方法...\n\n📌 要点一：...\n📌 要点二：...\n\n希望对大家有帮助！',
-                            tags: [generateTopic.value, '干货分享', '实用技巧']
-                        };
+                    try {
+                        const keywords = hotKeywords.value
+                            ? hotKeywords.value.split(/[,，]/).map(item => item.trim()).filter(Boolean)
+                            : [];
+                        const result = await requestJson(`${AI_API_URL}/generate/content`, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                topic: generateTopic.value,
+                                content_type: generateType.value,
+                                series_count: Number(seriesCount.value),
+                                hot_keywords: keywords
+                            })
+                        });
+                        generatedContent.value = result.data;
+                        stats.value.aiGenerated += (result.data.posts?.length || 1);
+                    } catch (error) {
+                        alert(`生成失败：${error.message}`);
+                    } finally {
                         isGenerating.value = false;
-                    }, 2000);
+                    }
                 };
                 
                 const saveAIConfig = () => {
-                    alert(`配置已保存！\n文字模型: ${textProvider.value.name}\n图片模型: ${imageProvider.value.name}`);
+                    window.localStorage.setItem('preferredTextProvider', selectedTextProvider.value);
+                    window.localStorage.setItem('preferredImageProvider', selectedImageProvider.value);
+                    alert(`前端偏好已保存。\n文字模型: ${textProvider.value.name}\n图片模型: ${imageProvider.value.name}\n\n安全提示：API Key 请写入 config/.env，并重启后端服务。`);
                 };
                 
-                const getLoginQRCode = () => {
-                    qrcode.value = 'mock_base64';
-                    xhsLoggedIn.value = true;
+                const getLoginQRCode = async () => {
+                    try {
+                        const status = await requestJson(`${DATA_API_URL}/login/status`);
+                        xhsLoggedIn.value = !!status.logged_in;
+                        if (xhsLoggedIn.value) {
+                            alert('当前账号已登录');
+                            return;
+                        }
+                        const result = await requestJson(`${DATA_API_URL}/login/qrcode`);
+                        const data = result.data || {};
+                        qrcode.value = data.qr_code_base64 || data.qrcode || data.image || data.base64 || null;
+                        if (!qrcode.value) {
+                            alert('未获取到二维码，请检查 xiaohongshu-mcp 服务日志');
+                        }
+                    } catch (error) {
+                        alert(`获取二维码失败：${error.message}`);
+                    }
                 };
-                
-                const publishPost = (post) => alert('发布: ' + post.title);
+
+                const publishPost = async (post) => {
+                    try {
+                        const result = await requestJson(`${DATA_API_URL}/publish/content`, {
+                            method: 'POST',
+                            body: JSON.stringify({ title: post.title, content: post.content, tags: post.tags || [] })
+                        });
+                        if (result.success) {
+                            stats.value.todayPosts += 1;
+                            alert('发布请求已提交');
+                        } else {
+                            alert(`发布失败：${JSON.stringify(result.data || result.error)}`);
+                        }
+                    } catch (error) {
+                        alert(`发布失败：${error.message}`);
+                    }
+                };
                 const editPost = (post) => alert('编辑: ' + post.title);
                 const schedulePost = (post) => alert('定时发布: ' + post.title);
                 const generateImageForPost = (post) => alert('生成配图: ' + post.title);
